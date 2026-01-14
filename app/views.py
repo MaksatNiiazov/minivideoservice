@@ -11,7 +11,7 @@ def index(request):
         form = MediaUploadForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect("media-upload")
+            return redirect("index")
     else:
         form = MediaUploadForm()
 
