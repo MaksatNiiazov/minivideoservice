@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from .models import Media, Category
@@ -32,3 +32,8 @@ def index(request):
             "selected_category": category_id,
         },
     )
+
+
+def view_image(request, pk):
+    media = get_object_or_404(Media, pk=pk)
+    return render(request, "view_image.html", {"media": media})

@@ -235,7 +235,7 @@
 
           <div>
   {% if m.media_type == "photo" and m.preview %}
-    <a href="{{ m.preview.url }}" target="_blank">Открыть изображение</a>
+    <a href="{% url 'view-image' m.id %}" target="_blank">Открыть изображение</a>
 
   {% elif m.media_type == "video" %}
     {% if m.file %}
