@@ -1,0 +1,19 @@
+[project]
+name = "mini-media-service"
+version = "0.1.0"
+description = ""
+package-mode = false
+authors = [
+    {name = "maksat.niiazov",email = "niiazov.maksat98@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django (>=6.0.1,<7.0.0)",
+    "pillow (>=12.1.0,<13.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

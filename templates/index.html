@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Media Hub</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .item { border: 1px solid #ddd; padding: 10px; }
+        img, video { max-width: 100%; height: auto; }
+        a { word-break: break-all; }
+    </style>
+</head>
+<body>
+
+<h1>Медиа</h1>
+
+<div class="grid">
+    {% for media in media_list %}
+        <div class="item">
+            {% if media.source_type == "file" %}
+                {% if media.media_type == "photo" %}
+                    <img src="{{ media.file.url }}">
+                {% elif media.media_type == "video" %}
+                    <video controls>
+                        <source src="{{ media.file.url }}">
+                    </video>
+                {% endif %}
+            {% else %}
+                <a href="{{ media.external_url }}" target="_blank">
+                    {{ media.external_url }}
+                </a>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>Пока нет медиа</p>
+    {% endfor %}
+</div>
+
+</body>
+</html>
