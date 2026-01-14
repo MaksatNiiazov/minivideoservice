@@ -16,7 +16,7 @@ def index(request):
         form = MediaUploadForm()
 
     items = Media.objects.all().order_by("-created_at")[:50]
-    return render(request, "media/upload.html", {
+    return render(request, "index.html", {
         "form": form,
         "items": items,
     })
