@@ -5,7 +5,7 @@ from .models import Media
 class MediaUploadForm(forms.ModelForm):
     class Meta:
         model = Media
-        fields = ("media_type", "source_type", "file", "external_url", "duration")
+        fields = ("media_type", "source_type", "file", "external_url", "duration", "category")
 
     def clean(self):
         cleaned = super().clean()

@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
-from .models import Media
+from .models import Media, Category
 from .forms import MediaUploadForm
 
 
@@ -11,12 +11,24 @@ def index(request):
         form = MediaUploadForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect("index")
     else:
         form = MediaUploadForm()
 
-    items = Media.objects.all().order_by("-created_at")[:50]
-    return render(request, "index.html", {
-        "form": form,
-        "items": items,
-    })
+    category_id = request.GET.get("category")
+
+    items = Media.objects.all().order_by("-created_at")
+    if category_id:
+        items = items.filter(category_id=category_id)
+
+    categories = Category.objects.all()
+
+    return render(
+        request,
+        "index.html",
+        {
+            "form": form,
+            "items": items,
+            "categories": categories,
+            "selected_category": category_id,
+        },
+    )
