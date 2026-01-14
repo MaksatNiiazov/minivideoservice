@@ -1,38 +1,22 @@
-from django.shortcuts import render
-from django.conf import settings
-from django.http import JsonResponse, HttpResponseForbidden
-from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, redirect
+from django.views.decorators.http import require_http_methods
+
 from .models import Media
+from .forms import MediaUploadForm
 
 
+@require_http_methods(["GET", "POST"])
 def index(request):
-    media_list = Media.objects.order_by("-created_at")
-    return render(request, "index.html", {"media_list": media_list})
+    if request.method == "POST":
+        form = MediaUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect("media-upload")
+    else:
+        form = MediaUploadForm()
 
-
-@csrf_exempt
-def bot_upload(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "method not allowed"}, status=405)
-
-    if request.headers.get("X-BOT-KEY") != settings.BOT_API_KEY:
-        return HttpResponseForbidden("invalid bot key")
-
-    media_type = request.POST.get("media_type")
-    source_type = request.POST.get("source_type")
-
-    media = Media(
-        media_type=media_type,
-        source_type=source_type,
-    )
-
-    if source_type == "file":
-        media.file = request.FILES.get("file")
-
-    if source_type == "link":
-        media.external_url = request.POST.get("external_url")
-
-    media.full_clean()
-    media.save()
-
-    return JsonResponse({"status": "ok", "id": media.id})
+    items = Media.objects.all().order_by("-created_at")[:50]
+    return render(request, "media/upload.html", {
+        "form": form,
+        "items": items,
+    })

@@ -1,41 +1,135 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Media Hub</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .item { border: 1px solid #ddd; padding: 10px; }
-        img, video { max-width: 100%; height: auto; }
-        a { word-break: break-all; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MediaHub — загрузка</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 24px; background: #fafafa; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .card { background: #fff; border: 1px solid #e6e6e6; border-radius: 14px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-1 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    label { display: block; font-size: 12px; color: #555; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 10px; }
+    .btn { display: inline-block; padding: 10px 14px; border-radius: 12px; border: 0; cursor: pointer; background: #111; color: #fff; }
+    .hint { font-size: 12px; color: #777; margin-top: 8px; }
+    .err { background: #fff2f2; border: 1px solid #ffd1d1; color: #7d1f1f; padding: 10px 12px; border-radius: 12px; margin-bottom: 12px; }
+    .list { margin-top: 18px; display: grid; gap: 10px; }
+    .item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: #fff; }
+    .meta { display: grid; gap: 4px; }
+    .tag { font-size: 12px; padding: 4px 8px; border: 1px solid #e8e8e8; border-radius: 999px; background: #f7f7f7; display: inline-block; }
+    a { color: #0b57d0; text-decoration: none; }
+    .muted { color: #777; font-size: 12px; }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h2 style="margin:0 0 10px;">Загрузка фото/видео</h2>
 
-<h1>Медиа</h1>
-
-<div class="grid">
-    {% for media in media_list %}
-        <div class="item">
-            {% if media.source_type == "file" %}
-                {% if media.media_type == "photo" %}
-                    <img src="{{ media.file.url }}">
-                {% elif media.media_type == "video" %}
-                    <video controls>
-                        <source src="{{ media.file.url }}">
-                    </video>
-                {% endif %}
-            {% else %}
-                <a href="{{ media.external_url }}" target="_blank">
-                    {{ media.external_url }}
-                </a>
-            {% endif %}
+      {% if form.errors %}
+        <div class="err">
+          {{ form.non_field_errors }}
+          {% for field in form %}
+            {% for error in field.errors %}
+              <div>{{ field.label }}: {{ error }}</div>
+            {% endfor %}
+          {% endfor %}
         </div>
-    {% empty %}
-        <p>Пока нет медиа</p>
-    {% endfor %}
-</div>
+      {% endif %}
 
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row">
+          <div>
+            <label>Тип медиа</label>
+            {{ form.media_type }}
+          </div>
+          <div>
+            <label>Источник</label>
+            {{ form.source_type }}
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div>
+            <label>Файл (если source=file)</label>
+            {{ form.file }}
+          </div>
+          <div>
+            <label>Ссылка (если source=link)</label>
+            {{ form.external_url }}
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div>
+            <label>Длительность (сек, только для video; опционально)</label>
+            {{ form.duration }}
+          </div>
+          <div></div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn" type="submit">Сохранить</button>
+          <div class="hint">Файлы сохраняются локально в /uploads (для продакшена лучше S3/MinIO).</div>
+        </div>
+      </form>
+    </div>
+
+    <div class="list">
+      {% for m in items %}
+        <div class="item">
+          <div class="meta">
+            <div>
+              <span class="tag">{{ m.media_type }}</span>
+              <span class="tag">{{ m.source_type }}</span>
+              {% if m.duration %}<span class="tag">duration={{ m.duration }}</span>{% endif %}
+            </div>
+            <div class="muted">#{{ m.id }} · {{ m.created_at }}</div>
+            <div>
+              {% if m.file %}
+                <a href="{{ m.file.url }}" target="_blank" rel="noreferrer">Открыть файл</a>
+              {% else %}
+                <a href="{{ m.external_url }}" target="_blank" rel="noreferrer">Открыть ссылку</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="card">Пока пусто.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    // Небольшая подсказка по UI: скрываем ненужное поле по source_type
+    const source = document.getElementById("id_source_type");
+    const fileInput = document.getElementById("id_file");
+    const urlInput = document.getElementById("id_external_url");
+
+    function sync() {
+      const v = source?.value;
+      if (!v) return;
+
+      const fileWrap = fileInput?.closest("div");
+      const urlWrap = urlInput?.closest("div");
+
+      if (fileWrap && urlWrap) {
+        if (v === "file") {
+          fileWrap.style.opacity = "1";
+          urlWrap.style.opacity = ".35";
+        } else {
+          fileWrap.style.opacity = ".35";
+          urlWrap.style.opacity = "1";
+        }
+      }
+    }
+
+    source?.addEventListener("change", sync);
+    sync();
+  </script>
 </body>
 </html>
