@@ -5,8 +5,6 @@ from .models import Media, Category
 from .forms import MediaUploadForm
 
 
-
-
 @require_http_methods(["GET", "POST"])
 def index(request):
     if request.method == "POST":
@@ -55,6 +53,12 @@ def index(request):
         },
     )
 
+
 def view_image(request, pk):
     media = get_object_or_404(Media, pk=pk)
     return render(request, "view_image.html", {"media": media})
+
+
+def view_video(request, pk):
+    media = get_object_or_404(Media, pk=pk)
+    return render(request, "view_video.html", {"media": media})
