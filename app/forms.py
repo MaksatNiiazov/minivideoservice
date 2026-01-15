@@ -1,4 +1,5 @@
 from django import forms
+from django.forms.models import construct_instance
 from .models import Media
 
 
@@ -46,3 +47,25 @@ class MediaUploadForm(forms.ModelForm):
                 )
 
         return cleaned
+
+    def _post_clean(self):
+        exclude = self._get_validation_exclusions()
+        self.instance = construct_instance(
+            self,
+            self.instance,
+            self._meta.fields,
+            self._meta.exclude,
+        )
+
+        files = self.files.getlist("files")
+        if (
+            self.cleaned_data.get("source_type") == Media.SourceType.FILE
+            and files
+        ):
+            self.instance.file = files[0]
+            self.instance.external_url = None
+
+        self.instance.full_clean(exclude=exclude, validate_unique=False)
+
+        if self._validate_unique:
+            self.validate_unique()
