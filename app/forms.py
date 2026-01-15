@@ -7,8 +7,8 @@ class MultipleFileInput(forms.FileInput):
 
 
 class MediaUploadForm(forms.ModelForm):
-    # 🔹 поле ТОЛЬКО для оптовой загрузки
-    files = forms.FileField(
+    # ⚠️ ВАЖНО: НЕ FileField
+    files = forms.Field(
         required=False,
         widget=MultipleFileInput(),
         label="Файлы (можно выбрать несколько)",
@@ -30,7 +30,7 @@ class MediaUploadForm(forms.ModelForm):
         source_type = cleaned.get("source_type")
         external_url = cleaned.get("external_url")
 
-        # ⚠️ ВАЖНО: файлы берём ТОЛЬКО так
+        # ⚠️ ТОЛЬКО ТАК
         files = self.files.getlist("files")
 
         if source_type == Media.SourceType.FILE:
