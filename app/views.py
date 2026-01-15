@@ -48,7 +48,22 @@ def index(request):
 
     # ---------- ФИЛЬТР ----------
     category_id = request.GET.get("category")
-    qs = Media.objects.all().order_by("-created_at")
+    qs = (
+        Media.objects.select_related("category")
+        .only(
+            "id",
+            "media_type",
+            "source_type",
+            "preview",
+            "file",
+            "external_url",
+            "duration",
+            "created_at",
+            "category_id",
+            "category__name",
+        )
+        .order_by("-created_at")
+    )
 
     if category_id:
         qs = qs.filter(category_id=category_id)
@@ -66,7 +81,7 @@ def index(request):
             "items": page_obj,  # ⚠️ теперь это Page, не QuerySet
             "page_obj": page_obj,
             "paginator": paginator,
-            "categories": Category.objects.all(),
+            "categories": Category.objects.only("id", "name"),
             "selected_category": category_id,
         },
     )
