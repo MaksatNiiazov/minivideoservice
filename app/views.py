@@ -3,7 +3,7 @@ from django.views.decorators.http import require_http_methods
 
 from .models import Media, Category
 from .forms import MediaUploadForm
-
+from django.core.paginator import Paginator
 
 
 @require_http_methods(["GET", "POST"])
@@ -18,10 +18,8 @@ def index(request):
             duration = form.cleaned_data.get("duration")
             external_url = form.cleaned_data.get("external_url")
 
-            # 🔹 ОПТОВАЯ загрузка файлов
             if source_type == Media.SourceType.FILE:
                 files = request.FILES.getlist("files")
-
                 for f in files:
                     Media.objects.create(
                         media_type=media_type,
@@ -31,7 +29,6 @@ def index(request):
                         file=f,
                     )
 
-            # 🔹 Загрузка по ссылке
             elif source_type == Media.SourceType.LINK:
                 Media.objects.create(
                     media_type=media_type,
@@ -46,19 +43,26 @@ def index(request):
     else:
         form = MediaUploadForm()
 
-    # 🔹 фильтрация по категории
+    # ---------- ФИЛЬТР ----------
     category_id = request.GET.get("category")
+    qs = Media.objects.all().order_by("-created_at")
 
-    items = Media.objects.all().order_by("-created_at")
     if category_id:
-        items = items.filter(category_id=category_id)
+        qs = qs.filter(category_id=category_id)
+
+    # ---------- ПАГИНАЦИЯ ----------
+    paginator = Paginator(qs, 10)  # 🔥 по 10 элементов
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     return render(
         request,
         "app/index.html",
         {
             "form": form,
-            "items": items,
+            "items": page_obj,  # ⚠️ теперь это Page, не QuerySet
+            "page_obj": page_obj,
+            "paginator": paginator,
             "categories": Category.objects.all(),
             "selected_category": category_id,
         },

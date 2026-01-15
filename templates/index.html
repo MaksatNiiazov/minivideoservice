@@ -273,6 +273,32 @@
       <div class="card">Пока пусто</div>
     {% endfor %}
   </div>
+  {% if page_obj.has_other_pages %}
+  <div class="card" style="margin-top:16px;">
+    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+
+      {% if page_obj.has_previous %}
+        <a class="btn"
+           href="?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.previous_page_number }}">
+          ← Назад
+        </a>
+      {% endif %}
+
+      <span class="muted" style="align-self:center;">
+        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+      </span>
+
+      {% if page_obj.has_next %}
+        <a class="btn"
+           href="?{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.next_page_number }}">
+          Вперёд →
+        </a>
+      {% endif %}
+
+    </div>
+  </div>
+{% endif %}
+
 
 </div>
 
