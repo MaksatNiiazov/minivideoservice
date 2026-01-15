@@ -18,8 +18,10 @@ def index(request):
             duration = form.cleaned_data.get("duration")
             external_url = form.cleaned_data.get("external_url")
 
+            # 🔹 1. СОХРАНЕНИЕ ФАЙЛОВ (оптом)
             if source_type == Media.SourceType.FILE:
                 files = request.FILES.getlist("files")
+
                 for f in files:
                     Media.objects.create(
                         media_type=media_type,
@@ -29,6 +31,7 @@ def index(request):
                         file=f,
                     )
 
+            # 🔹 2. СОХРАНЕНИЕ ССЫЛКИ
             elif source_type == Media.SourceType.LINK:
                 Media.objects.create(
                     media_type=media_type,
