@@ -55,7 +55,7 @@
     .hint {
       font-size: 12px;
       color: #777;
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .err {
@@ -90,6 +90,11 @@
       border-radius: 10px;
       border: 1px solid #eee;
       background: #f3f3f3;
+      flex-shrink: 0;
+    }
+
+    video.preview {
+      pointer-events: none;
     }
 
     .meta {
@@ -165,9 +170,11 @@
 
       <div class="row">
         <div id="file-block">
-          <label>Файл</label>
+          <label>Файлы (можно выбрать несколько)</label>
           {{ form.files }}
+          <div class="hint">Все файлы должны быть одного типа</div>
         </div>
+
         <div id="url-block">
           <label>Ссылка</label>
           {{ form.external_url }}
@@ -184,7 +191,7 @@
 
       <div style="margin-top:14px;">
         <button class="btn" type="submit">Сохранить</button>
-        <div class="hint">Файлы хранятся локально. В проде — S3/MinIO.</div>
+        <div class="hint">Фото автоматически конвертируются в WEBP</div>
       </div>
     </form>
   </div>
@@ -215,8 +222,28 @@
   <div class="list">
     {% for m in items %}
       <div class="item">
-        {% if m.preview %}
+
+        {% if m.media_type == "photo" and m.preview %}
           <img class="preview" src="{{ m.preview.url }}" alt="preview">
+
+        {% elif m.media_type == "video" %}
+          {% if m.file %}
+            <video
+              class="preview"
+              src="{{ m.file.url }}"
+              muted
+              preload="metadata"
+              playsinline
+            ></video>
+          {% elif m.external_url %}
+            <video
+              class="preview"
+              src="{{ m.external_url }}"
+              muted
+              preload="metadata"
+              playsinline
+            ></video>
+          {% endif %}
         {% endif %}
 
         <div class="meta">
@@ -234,18 +261,12 @@
           <div class="muted">#{{ m.id }} · {{ m.created_at }}</div>
 
           <div>
-  {% if m.media_type == "photo" and m.preview %}
-    <a href="{% url 'view-image' m.id %}" target="_blank">Открыть изображение</a>
-
-  {% elif m.media_type == "video" %}
-    {% if m.file %}
-      <a href="{{ m.file.url }}" target="_blank">Открыть видео</a>
-    {% elif m.external_url %}
-      <a href="{{ m.external_url }}" target="_blank">Открыть видео</a>
-    {% endif %}
-  {% endif %}
-</div>
-
+            {% if m.media_type == "photo" %}
+              <a href="{% url 'view-image' m.id %}">Открыть изображение</a>
+            {% elif m.media_type == "video" %}
+              <a href="{% url 'view-video' m.id %}">Открыть видео</a>
+            {% endif %}
+          </div>
         </div>
       </div>
     {% empty %}
