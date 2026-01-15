@@ -6,7 +6,7 @@ from .models import Media
 class MediaUploadForm(forms.ModelForm):
     files = forms.FileField(
         required=False,
-        widget=forms.ClearableFileInput(attrs={"multiple": True}),
+        widget=forms.FileInput(attrs={"multiple": True}),
         label="Файлы (можно выбрать несколько)",
     )
 
