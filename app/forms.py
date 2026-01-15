@@ -2,11 +2,14 @@ from django import forms
 from .models import Media
 
 
+class MultipleFileInput(forms.FileInput):
+    allow_multiple_selected = True
+
 
 class MediaUploadForm(forms.ModelForm):
     files = forms.FileField(
         required=False,
-        widget=forms.FileInput(attrs={"multiple": True}),
+        widget=MultipleFileInput(),
         label="Файлы (можно выбрать несколько)",
     )
 
@@ -22,13 +25,13 @@ class MediaUploadForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        files = self.files.getlist("files")
         source_type = cleaned.get("source_type")
+        files = self.files.getlist("files")
 
         if source_type == Media.SourceType.FILE and not files:
-            raise forms.ValidationError("Выбери хотя бы один файл.")
+            raise forms.ValidationError("Выберите хотя бы один файл.")
 
         if source_type == Media.SourceType.LINK and not cleaned.get("external_url"):
-            raise forms.ValidationError("Укажи ссылку.")
+            raise forms.ValidationError("Укажите ссылку.")
 
         return cleaned
