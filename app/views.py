@@ -57,7 +57,7 @@ def index(request):
 
     return render(
         request,
-        "app/index.html",
+        "index.html",
         {
             "form": form,
             "items": page_obj,  # ⚠️ теперь это Page, не QuerySet
